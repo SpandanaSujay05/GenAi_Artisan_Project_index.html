@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Artisan Assistant</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+    h1, h2 {
+      font-family: 'Playfair Display', serif;
+    }
+  </style>
+</head>
+<body class="bg-gradient-to-br from-red-200 via-white to-pink-200 text-gray-800 min-h-screen flex items-center justify-center p-6">
+
+  <div class="max-w-6xl w-full bg-white/80 backdrop-blur-xl shadow-2xl rounded-3xl overflow-hidden grid md:grid-cols-2 border border-purple-100">
+
+    <!-- Storyteller Section -->
+    <div class="bg-gradient-to-br from-purple-600 to-purple-800 text-white flex flex-col p-8">
+      <h2 class="text-3xl font-bold mb-2 text-center">✨ The Storyteller</h2>
+      <p class="text-purple-100 text-center mb-6">Generate unique artisan-inspired marketing copy.</p>
+
+      <div class="mb-6">
+        <label for="keywords-input" class="block text-sm font-semibold mb-2">Enter Keywords</label>
+        <input id="keywords-input" type="text" placeholder="e.g., pottery, gift, gardening"
+          class="w-full border-2 border-purple-300 rounded-full px-4 py-3 text-gray-800 focus:outline-none focus:ring-4 focus:ring-pink-400 transition">
+        <button id="generate-button"
+          class="mt-4 bg-pink-500 hover:bg-pink-600 text-white font-semibold py-2.5 px-6 rounded-full w-full shadow-lg transition">
+          Generate Copy
+        </button>
+      </div>
+
+      <div class="flex-1 bg-white/90 text-gray-800 p-4 rounded-xl overflow-y-auto shadow-inner border border-purple-200">
+        <div id="copy-output" class="text-sm space-y-4">
+          <p class="text-center text-gray-400">Your marketing copy will appear here.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Curator Section -->
+    <div class="flex flex-col p-8 bg-blue-100">
+      <div class="text-center mb-6">
+        <h1 class="text-4xl font-bold text-gray-900 mb-2">🎨 The Curator</h1>
+        <p class="text-black-500">Discover the perfect artisan product with our AI guide.</p>
+      </div>
+
+      <div id="chat-window"
+        class="flex-1 bg-gray-50 p-4 rounded-xl overflow-y-auto mb-4 border border-gray-200 shadow-inner"
+        style="min-height: 300px;">
+        <!-- Initial welcome message -->
+        <div class="flex items-start mb-4">
+          <span class="p-3 bg-blue-500 text-white rounded-full flex-shrink-0 mr-3 shadow-md">
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+              <path
+                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zm-2 2a1 1 0 00-1 1v1h-1a1 1 0 000 2h1v1a1 1 0 002 0v-1h1a1 1 0 000-2h-1V9a1 1 0 00-1-1z"
+                clip-rule="evenodd" fill-rule="evenodd"></path>
+            </svg>
+          </span>
+          <div class="flex flex-col">
+            <span class="text-gray-700 font-semibold text-sm">Curator</span>
+            <div class="bg-yellow-100 p-3 rounded-tr-xl rounded-b-xl max-w-xs text-sm shadow-sm">
+              Hello! How can I help you discover the perfect artisan product?
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex items-center space-x-2">
+        <input id="chat-input" type="text" placeholder="Type your message..."
+          class="flex-1 border-2 border-gray-300 rounded-full px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400 transition">
+        <button id="send-button"
+          class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-full shadow-md transition">
+          Send
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // --- Curator Logic ---
+      const chatInput = document.getElementById('chat-input');
+      const sendButton = document.getElementById('send-button');
+      const chatWindow = document.getElementById('chat-window');
+
+      const sendMessage = async () => {
+        const message = chatInput.value.trim();
+        if (!message) return;
+
+        const userMessageDiv = document.createElement('div');
+        userMessageDiv.className = 'flex items-end justify-end mb-4';
+        userMessageDiv.innerHTML = `<div class="bg-pink-100 text-gray-800 p-3 rounded-tl-xl rounded-b-xl max-w-xs text-sm shadow">${message}</div>`;
+        chatWindow.appendChild(userMessageDiv);
+        chatInput.value = '';
+        chatWindow.scrollTop = chatWindow.scrollHeight;
+
+        try {
+          const response = await fetch('/api/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: message })
+          });
+          const data = await response.json();
+
+          const botMessageDiv = document.createElement('div');
+          botMessageDiv.className = 'flex items-start mb-4';
+          botMessageDiv.innerHTML = `
+            <span class="p-3 bg-blue-500 text-white rounded-full flex-shrink-0 mr-3 shadow-md">
+              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zm-2 2a1 1 0 00-1 1v1h-1a1 1 0 000 2h1v1a1 1 0 002 0v-1h1a1 1 0 000-2h-1V9a1 1 0 00-1-1z" clip-rule="evenodd" fill-rule="evenodd"></path>
+              </svg>
+            </span>
+            <div class="flex flex-col">
+              <span class="text-gray-700 font-semibold text-sm">Curator</span>
+              <div class="bg-blue-100 p-3 rounded-tr-xl rounded-b-xl max-w-xs text-sm shadow-sm">${data.response}</div>
+            </div>
+          `;
+          chatWindow.appendChild(botMessageDiv);
+          chatWindow.scrollTop = chatWindow.scrollHeight;
+        } catch (error) {
+          console.error('Chat error:', error);
+        }
+      };
+
+      sendButton.addEventListener('click', sendMessage);
+      chatInput.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') sendMessage();
+      });
+
+      // --- Storyteller Logic ---
+      const keywordsInput = document.getElementById('keywords-input');
+      const generateButton = document.getElementById('generate-button');
+      const copyOutput = document.getElementById('copy-output');
+
+      generateButton.addEventListener('click', async () => {
+        const keywords = keywordsInput.value.trim();
+        if (!keywords) {
+          copyOutput.innerHTML = `<p class="text-center text-red-500">Please enter some keywords to generate copy.</p>`;
+          return;
+        }
+
+        copyOutput.innerHTML = `<p class="text-center text-gray-500">✨ Generating copy...</p>`;
+
+        try {
+          const response = await fetch('/api/generate-copy', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ keywords: keywords })
+          });
+          const data = await response.json();
+
+          copyOutput.innerHTML = `
+            <div class="space-y-3">
+              <div>
+                <span class="text-xs text-gray-500 uppercase font-semibold">Short Description</span>
+                <p class="mt-1">${data.product_description}</p>
+              </div>
+              <hr class="border-gray-300">
+              <div>
+                <span class="text-xs text-gray-500 uppercase font-semibold">Long Description</span>
+                <p class="mt-1">${data.long_description}</p>
+              </div>
+              <hr class="border-gray-300">
+              <div>
+                <span class="text-xs text-gray-500 uppercase font-semibold">Social Media Caption</span>
+                <p class="mt-1 italic text-pink-600">"${data.social_media_caption}"</p>
+              </div>
+            </div>
+          `;
+        } catch (error) {
+          console.error('Copy generation error:', error);
+          copyOutput.innerHTML = `<p class="text-center text-red-500">Sorry, there was an error generating the copy. Please try again.</p>`;
+        }
+      });
+    });
+  </script>
+</body>
+</html>
